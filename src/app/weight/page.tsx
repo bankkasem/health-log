@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
 import type { WeightFormData, WeightMetrics } from "@/types/weight";
+import Link from "next/link";
+import { useState } from "react";
+import { UserMenu } from "@/components/user-menu";
 
 export default function WeightPage() {
   const [formData, setFormData] = useState<WeightFormData>({
@@ -20,7 +21,7 @@ export default function WeightPage() {
 
     try {
       const entry: WeightMetrics = {
-        timestamp: new Date().toLocaleString("th-TH"),
+        timestamp: new Date().toISOString(),
         bodyFatPercentage: Number.parseFloat(formData.bodyFatPercentage),
         muscleMass: Number.parseFloat(formData.muscleMass),
         visceralFat: Number.parseFloat(formData.visceralFat),
@@ -50,9 +51,9 @@ export default function WeightPage() {
       } else {
         alert(`เกิดข้อผิดพลาด: ${result.message}`);
       }
-    } catch (err) {
-      console.error("Error saving to file:", err);
-      alert("เกิดข้อผิดพลาดในการบันทึกไฟล์");
+    } catch (error) {
+      console.error("Error saving data:", error);
+      alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
     } finally {
       setIsSubmitting(false);
     }
@@ -67,6 +68,9 @@ export default function WeightPage() {
 
   return (
     <div className="min-h-screen p-8 max-w-2xl mx-auto">
+      <div className="flex justify-end mb-4">
+        <UserMenu />
+      </div>
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">บันทึกข้อมูลสุขภาพ</h1>
         <Link
@@ -172,7 +176,7 @@ export default function WeightPage() {
           disabled={isSubmitting}
           className="w-full bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? "กำลังบันทึก..." : "บันทึกลงไฟล์"}
+          {isSubmitting ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
         </button>
       </form>
     </div>

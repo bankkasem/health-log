@@ -3,6 +3,7 @@
 import type { WeightMetrics } from "@/types/weight";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { UserMenu } from "@/components/user-menu";
 
 type RecordData = WeightMetrics;
 
@@ -42,6 +43,9 @@ export default function RecordsPage() {
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-6xl mx-auto">
+        <div className="flex justify-end mb-4">
+          <UserMenu />
+        </div>
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold">ประวัติการบันทึก</h1>
           <Link
@@ -93,7 +97,13 @@ export default function RecordsPage() {
                     // biome-ignore lint/suspicious/noArrayIndexKey: static data
                     <tr key={index} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {record.timestamp}
+                        {new Date(record.timestamp).toLocaleString("th-TH", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {record.bodyFatPercentage}
