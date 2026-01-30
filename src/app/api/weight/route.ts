@@ -1,28 +1,39 @@
-import type { WeightMetrics } from "@/types/weight";
+import type { WeightMetrics, DatabaseWeightMetric } from "@/types/weight";
+import { toWeightMetrics } from "@/types/weight";
 import { type NextRequest, NextResponse } from "next/server";
-import { promises as fs } from "node:fs";
-import path from "node:path";
-import * as XLSX from "xlsx";
-
-const DATA_DIR = path.join(process.cwd(), "data");
-const FILE_PATH = path.join(DATA_DIR, "weight-log.xlsx");
+import { supabaseAdmin } from "@/lib/supabase/server";
+import { auth } from "@/lib/auth";
 
 export async function GET() {
   try {
-    // Check if file exists
-    try {
-      const fileBuffer = await fs.readFile(FILE_PATH);
-      const workbook = XLSX.read(fileBuffer, { type: "buffer" });
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const data = XLSX.utils.sheet_to_json(worksheet);
+    const session = await auth();
 
-      return NextResponse.json({ success: true, data });
-    } catch (_error) {
-      // File doesn't exist, return empty array
-      return NextResponse.json({ success: true, data: [] });
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 },
+      );
     }
+
+    const { data, error } = await supabaseAdmin
+      .from("weight_metrics")
+      .select("*")
+      .eq("user_id", session.user.id)
+      .order("timestamp", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching weight metrics:", error);
+      return NextResponse.json(
+        { success: false, message: "เกิดข้อผิดพลาดในการอ่านข้อมูล" },
+        { status: 500 },
+      );
+    }
+
+    const metrics = (data as DatabaseWeightMetric[]).map(toWeightMetrics);
+
+    return NextResponse.json({ success: true, data: metrics });
   } catch (error) {
-    console.error("Error reading Excel:", error);
+    console.error("Error reading weight metrics:", error);
     return NextResponse.json(
       { success: false, message: "เกิดข้อผิดพลาดในการอ่านข้อมูล" },
       { status: 500 },
@@ -32,52 +43,45 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 },
+      );
+    }
+
     const body = await request.json();
     const entry: WeightMetrics = body;
 
-    // Ensure data directory exists
-    await fs.mkdir(DATA_DIR, { recursive: true });
+    console.log("Attempting to insert weight metric for user:", session.user.id);
 
-    let workbook: XLSX.WorkBook;
-    let worksheet: XLSX.WorkSheet;
+    const { error } = await supabaseAdmin.from("weight_metrics").insert({
+      user_id: session.user.id,
+      timestamp: entry.timestamp,
+      body_fat_percentage: entry.bodyFatPercentage,
+      muscle_mass: entry.muscleMass,
+      visceral_fat: entry.visceralFat,
+      bmr: entry.bmr,
+      bmi: entry.bmi,
+    });
 
-    // Check if file exists
-    try {
-      const fileBuffer = await fs.readFile(FILE_PATH);
-      workbook = XLSX.read(fileBuffer, { type: "buffer" });
-      worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    } catch (_error) {
-      // File doesn't exist, create new workbook
-      workbook = XLSX.utils.book_new();
-      worksheet = XLSX.utils.json_to_sheet([]);
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Weight Log");
+    if (error) {
+      console.error("Error saving weight metric:", error);
+      console.error("Error details:", JSON.stringify(error, null, 2));
+      return NextResponse.json(
+        { success: false, message: "เกิดข้อผิดพลาดในการบันทึกข้อมูล" },
+        { status: 500 },
+      );
     }
 
-    // Convert entry to Thai headers format
-    const excelEntry = {
-      "วันที่/เวลา": entry.timestamp,
-      เปอร์เซ็นต์ไขมันในร่างกาย: entry.bodyFatPercentage,
-      "มวลกล้ามเนื้อ (kg)": entry.muscleMass,
-      ไขมันในช่องท้อง: entry.visceralFat,
-      BMR: entry.bmr,
-      BMI: entry.bmi,
-    };
-
-    // Convert worksheet to JSON to append new row
-    const data = XLSX.utils.sheet_to_json(worksheet);
-    data.push(excelEntry);
-
-    // Create new worksheet with updated data
-    const newWorksheet = XLSX.utils.json_to_sheet(data);
-    workbook.Sheets[workbook.SheetNames[0]] = newWorksheet;
-
-    // Write to file
-    const wbout = XLSX.write(workbook, { bookType: "xlsx", type: "buffer" });
-    await fs.writeFile(FILE_PATH, wbout);
-
-    return NextResponse.json({ success: true, message: "บันทึกข้อมูลเรียบร้อยแล้ว" });
+    return NextResponse.json({
+      success: true,
+      message: "บันทึกข้อมูลเรียบร้อยแล้ว",
+    });
   } catch (error) {
-    console.error("Error saving to Excel:", error);
+    console.error("Error saving weight metric:", error);
     return NextResponse.json(
       { success: false, message: "เกิดข้อผิดพลาดในการบันทึกข้อมูล" },
       { status: 500 },
