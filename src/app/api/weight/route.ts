@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import * as XLSX from "xlsx";
+import type { WeightMetrics } from "@/types/weight";
+import { type NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import type { WeightMetrics } from "@/types/weight";
+import * as XLSX from "xlsx";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const FILE_PATH = path.join(DATA_DIR, "weight-log.xlsx");
@@ -17,7 +17,7 @@ export async function GET() {
       const data = XLSX.utils.sheet_to_json(worksheet);
 
       return NextResponse.json({ success: true, data });
-    } catch (error) {
+    } catch (_error) {
       // File doesn't exist, return empty array
       return NextResponse.json({ success: true, data: [] });
     }
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       const fileBuffer = await fs.readFile(FILE_PATH);
       workbook = XLSX.read(fileBuffer, { type: "buffer" });
       worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    } catch (error) {
+    } catch (_error) {
       // File doesn't exist, create new workbook
       workbook = XLSX.utils.book_new();
       worksheet = XLSX.utils.json_to_sheet([]);
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     // Convert entry to Thai headers format
     const excelEntry = {
       "วันที่/เวลา": entry.timestamp,
-      "เปอร์เซ็นต์ไขมันในร่างกาย": entry.bodyFatPercentage,
+      เปอร์เซ็นต์ไขมันในร่างกาย: entry.bodyFatPercentage,
       "มวลกล้ามเนื้อ (kg)": entry.muscleMass,
       ไขมันในช่องท้อง: entry.visceralFat,
       BMR: entry.bmr,
