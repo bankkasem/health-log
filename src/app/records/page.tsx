@@ -1,21 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import type { WeightMetrics } from "@/types/weight";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
-interface RecordData {
-  "วันที่/เวลา": string;
-  "เปอร์เซ็นต์ไขมันในร่างกาย": number;
-  "มวลกล้ามเนื้อ (kg)": number;
-  ไขมันในช่องท้อง: number;
-  BMR: number;
-  BMI: number;
-}
+type RecordData = WeightMetrics;
 
 export default function RecordsPage() {
   const [records, setRecords] = useState<RecordData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: static fetch on mount
   useEffect(() => {
     fetchRecords();
   }, []);
@@ -95,24 +90,25 @@ export default function RecordsPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {records.map((record, index) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: static data
                     <tr key={index} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {record["วันที่/เวลา"]}
+                        {record.timestamp}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {record["เปอร์เซ็นต์ไขมันในร่างกาย"]}
+                        {record.bodyFatPercentage}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {record["มวลกล้ามเนื้อ (kg)"]}
+                        {record.muscleMass}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {record.ไขมันในช่องท้อง}
+                        {record.visceralFat}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {record.BMR}
+                        {record.bmr}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {record.BMI}
+                        {record.bmi}
                       </td>
                     </tr>
                   ))}
