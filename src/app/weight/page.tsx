@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
 import type { WeightFormData, WeightMetrics } from "@/types/weight";
+import Link from "next/link";
+import { useState } from "react";
 
 export default function WeightPage() {
   const [formData, setFormData] = useState<WeightFormData>({
@@ -50,8 +50,8 @@ export default function WeightPage() {
       } else {
         alert(`เกิดข้อผิดพลาด: ${result.message}`);
       }
-    } catch (err) {
-      console.error("Error saving to file:", err);
+    } catch (error) {
+      console.error("Error saving to file:", error);
       alert("เกิดข้อผิดพลาดในการบันทึกไฟล์");
     } finally {
       setIsSubmitting(false);
