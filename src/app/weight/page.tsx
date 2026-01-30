@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { HealthFormData, HealthMetrics } from "@/types/health";
+import type { WeightFormData, WeightMetrics } from "@/types/weight";
 
 export default function WeightPage() {
-  const [formData, setFormData] = useState<HealthFormData>({
+  const [formData, setFormData] = useState<WeightFormData>({
     bodyFatPercentage: "",
     muscleMass: "",
     visceralFat: "",
@@ -19,7 +19,7 @@ export default function WeightPage() {
     setIsSubmitting(true);
 
     try {
-      const entry: HealthMetrics = {
+      const entry: WeightMetrics = {
         timestamp: new Date().toLocaleString("th-TH"),
         bodyFatPercentage: Number.parseFloat(formData.bodyFatPercentage),
         muscleMass: Number.parseFloat(formData.muscleMass),
@@ -28,7 +28,7 @@ export default function WeightPage() {
         bmi: Number.parseFloat(formData.bmi),
       };
 
-      const response = await fetch("/api/health-log", {
+      const response = await fetch("/api/weight", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

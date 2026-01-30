@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import type { HealthMetrics } from "@/types/health";
+import type { WeightMetrics } from "@/types/weight";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const FILE_PATH = path.join(DATA_DIR, "weight-log.xlsx");
@@ -33,7 +33,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const entry: HealthMetrics = body;
+    const entry: WeightMetrics = body;
 
     // Ensure data directory exists
     await fs.mkdir(DATA_DIR, { recursive: true });
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       // File doesn't exist, create new workbook
       workbook = XLSX.utils.book_new();
       worksheet = XLSX.utils.json_to_sheet([]);
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Health Log");
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Weight Log");
     }
 
     // Convert entry to Thai headers format

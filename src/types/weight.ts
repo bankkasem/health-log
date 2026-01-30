@@ -1,4 +1,4 @@
-export interface HealthMetrics {
+export interface WeightMetrics {
   timestamp: string;
   bodyFatPercentage: number;
   muscleMass: number;
@@ -7,7 +7,7 @@ export interface HealthMetrics {
   bmi: number;
 }
 
-export interface HealthFormData {
+export interface WeightFormData {
   bodyFatPercentage: string;
   muscleMass: string;
   visceralFat: string;

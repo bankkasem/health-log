@@ -48,15 +48,15 @@ This project uses the Next.js App Router (not Pages Router). All routes are defi
 - `src/app/globals.css` - Global styles with Tailwind directives
 
 **Shared Code:**
-- `src/types/health.ts` - TypeScript interfaces for health metrics
-- `src/app/api/health-log/route.ts` - API route for saving health data to Excel
+- `src/types/weight.ts` - TypeScript interfaces for weight metrics
+- `src/app/api/weight/route.ts` - API route for weight data operations
 
 ### Features
 
-**Health Metrics Logging:**
-- Form to collect health data: body fat percentage, muscle mass, visceral fat, BMR, and BMI
+**Weight Tracking:**
+- Form to collect weight metrics: body fat percentage, muscle mass, visceral fat, BMR, and BMI
 - Data saved to `data/weight-log.xlsx` in the workspace
-- Uses Next.js API route to write to file server-side
+- Uses Next.js API route (`/api/weight`) for server-side file operations
 - Excel file has Thai column headers with automatic timestamp
 - Works in all browsers (server-side file operations)
 

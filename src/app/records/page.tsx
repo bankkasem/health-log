@@ -22,7 +22,7 @@ export default function RecordsPage() {
 
   const fetchRecords = async () => {
     try {
-      const response = await fetch("/api/health-log");
+      const response = await fetch("/api/weight");
       const result = await response.json();
 
       if (result.success) {
