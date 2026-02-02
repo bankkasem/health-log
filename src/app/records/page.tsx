@@ -4,32 +4,55 @@ import type { WeightMetrics } from "@/types/weight";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { UserMenu } from "@/components/user-menu";
+import { useToast } from "@/components/toast";
 
 type RecordData = WeightMetrics;
 
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
 export default function RecordsPage() {
+  const { showToast } = useToast();
   const [records, setRecords] = useState<RecordData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [pagination, setPagination] = useState<Pagination>({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0,
+  });
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: static fetch on mount
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fetchRecords should run when pagination.page changes
   useEffect(() => {
     fetchRecords();
-  }, []);
+  }, [pagination.page]);
 
   const fetchRecords = async () => {
     try {
-      const response = await fetch("/api/weight");
+      setIsLoading(true);
+      const response = await fetch(
+        `/api/weight?page=${pagination.page}&limit=${pagination.limit}`,
+      );
       const result = await response.json();
 
       if (result.success) {
         setRecords(result.data);
+        setPagination(result.pagination);
       }
     } catch (error) {
       console.error("Error fetching records:", error);
-      alert("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+      showToast("เกิดข้อผิดพลาดในการโหลดข้อมูล", "error");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPagination((prev) => ({ ...prev, page: newPage }));
   };
 
   if (isLoading) {
@@ -93,9 +116,8 @@ export default function RecordsPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {records.map((record, index) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: static data
-                    <tr key={index} className="hover:bg-gray-50">
+                  {records.map((record) => (
+                    <tr key={record.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {new Date(record.timestamp).toLocaleString("th-TH", {
                           year: "numeric",
@@ -125,8 +147,76 @@ export default function RecordsPage() {
                 </tbody>
               </table>
             </div>
-            <div className="bg-gray-50 px-6 py-3 text-sm text-gray-500">
-              รวม {records.length} รายการ
+            <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
+              <div className="text-sm text-gray-500">
+                แสดง{" "}
+                {records.length > 0
+                  ? (pagination.page - 1) * pagination.limit + 1
+                  : 0}
+                -
+                {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
+                จาก {pagination.total} รายการ
+              </div>
+              {pagination.totalPages > 1 && (
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(pagination.page - 1)}
+                    disabled={pagination.page === 1}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    ก่อนหน้า
+                  </button>
+                  <div className="flex gap-1">
+                    {Array.from(
+                      { length: pagination.totalPages },
+                      (_, i) => i + 1,
+                    )
+                      .filter((page) => {
+                        // Show first page, last page, current page, and pages around current
+                        return (
+                          page === 1 ||
+                          page === pagination.totalPages ||
+                          Math.abs(page - pagination.page) <= 1
+                        );
+                      })
+                      .map((page, index, array) => {
+                        // Add ellipsis if there's a gap
+                        const prevPage = array[index - 1];
+                        const showEllipsis = prevPage && page - prevPage > 1;
+
+                        return (
+                          <div key={page} className="flex gap-1">
+                            {showEllipsis && (
+                              <span className="px-3 py-2 text-sm text-gray-500">
+                                ...
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handlePageChange(page)}
+                              className={`px-4 py-2 text-sm font-medium rounded-md ${
+                                pagination.page === page
+                                  ? "bg-blue-600 text-white"
+                                  : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          </div>
+                        );
+                      })}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(pagination.page + 1)}
+                    disabled={pagination.page === pagination.totalPages}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    ถัดไป
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
