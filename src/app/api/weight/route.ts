@@ -55,7 +55,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const entry: WeightMetrics = body;
 
-    console.log("Attempting to insert weight metric for user:", session.user.id);
+    console.log(
+      "Attempting to insert weight metric for user:",
+      session.user.id,
+    );
 
     const { error } = await supabaseAdmin.from("weight_metrics").insert({
       user_id: session.user.id,

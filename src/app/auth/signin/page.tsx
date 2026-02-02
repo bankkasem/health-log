@@ -31,7 +31,7 @@ export default function SignInPage() {
         if (result.error === "CredentialsSignin") {
           setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง หรือบัญชียังไม่ได้ยืนยันอีเมล");
         } else {
-          setError("เกิดข้อผิดพลาด: " + result.error);
+          setError(`เกิดข้อผิดพลาด: ${result.error}`);
         }
       } else {
         router.push(callbackUrl);
