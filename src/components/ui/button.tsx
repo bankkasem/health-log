@@ -14,7 +14,7 @@ interface BaseButtonProps {
 
 interface ButtonAsButton
   extends BaseButtonProps,
-    ButtonHTMLAttributes<HTMLButtonElement> {
+    Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
   href?: never;
 }
 

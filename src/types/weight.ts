@@ -16,6 +16,8 @@ export interface WeightFormData {
   bmi: string;
 }
 
+export type WeightMetricsInput = Omit<WeightMetrics, "id">;
+
 export interface DatabaseWeightMetric {
   id: string;
   user_id: string;

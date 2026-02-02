@@ -1,6 +1,6 @@
 "use client";
 
-import type { WeightFormData, WeightMetrics } from "@/types/weight";
+import type { WeightFormData, WeightMetricsInput } from "@/types/weight";
 import { useState } from "react";
 import { UserMenu } from "@/components/user-menu";
 import { useToast } from "@/components/toast";
@@ -23,7 +23,7 @@ export default function WeightPage() {
     setIsSubmitting(true);
 
     try {
-      const entry: WeightMetrics = {
+      const entry: WeightMetricsInput = {
         timestamp: new Date().toISOString(),
         bodyFatPercentage: Number.parseFloat(formData.bodyFatPercentage),
         muscleMass: Number.parseFloat(formData.muscleMass),
