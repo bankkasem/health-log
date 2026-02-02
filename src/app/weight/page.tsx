@@ -4,8 +4,10 @@ import type { WeightFormData, WeightMetrics } from "@/types/weight";
 import Link from "next/link";
 import { useState } from "react";
 import { UserMenu } from "@/components/user-menu";
+import { useToast } from "@/components/toast";
 
 export default function WeightPage() {
+  const { showToast } = useToast();
   const [formData, setFormData] = useState<WeightFormData>({
     bodyFatPercentage: "",
     muscleMass: "",
@@ -40,7 +42,7 @@ export default function WeightPage() {
       const result = await response.json();
 
       if (result.success) {
-        alert(result.message);
+        showToast(result.message, "success");
         setFormData({
           bodyFatPercentage: "",
           muscleMass: "",
@@ -49,11 +51,11 @@ export default function WeightPage() {
           bmi: "",
         });
       } else {
-        alert(`เกิดข้อผิดพลาด: ${result.message}`);
+        showToast(`เกิดข้อผิดพลาด: ${result.message}`, "error");
       }
     } catch (error) {
       console.error("Error saving data:", error);
-      alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+      showToast("เกิดข้อผิดพลาดในการบันทึกข้อมูล", "error");
     } finally {
       setIsSubmitting(false);
     }
