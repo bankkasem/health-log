@@ -1,4 +1,5 @@
 export interface WeightMetrics {
+  id: string;
   timestamp: string;
   bodyFatPercentage: number;
   muscleMass: number;
@@ -30,6 +31,7 @@ export interface DatabaseWeightMetric {
 
 export function toWeightMetrics(dbMetric: DatabaseWeightMetric): WeightMetrics {
   return {
+    id: dbMetric.id,
     timestamp: dbMetric.timestamp,
     bodyFatPercentage: dbMetric.body_fat_percentage,
     muscleMass: dbMetric.muscle_mass,
