@@ -3,7 +3,8 @@
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -45,64 +46,62 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div className="max-w-md w-full space-y-8 p-6 md:p-8 bg-white rounded-lg shadow-md">
         <div>
-          <h2 className="text-3xl font-bold text-center">เข้าสู่ระบบ</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-center">
+            เข้าสู่ระบบ
+          </h2>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <div className="bg-red-50 text-red-500 p-3 rounded text-sm">
+            <div
+              className="bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-200"
+              role="alert"
+              aria-live="polite"
+            >
               {error}
             </div>
           )}
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-2">
-              อีเมล
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            />
-          </div>
+          <Input
+            label="อีเมล"
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+          />
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium mb-2"
-            >
-              รหัสผ่าน
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            />
-          </div>
+          <Input
+            label="รหัสผ่าน"
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="current-password"
+          />
 
-          <button
+          <Button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50"
+            loading={isLoading}
+            variant="primary"
+            size="md"
+            className="w-full"
           >
             {isLoading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
-          </button>
+          </Button>
         </form>
 
         <div className="text-center text-sm">
           <span className="text-gray-600">ยังไม่มีบัญชี? </span>
-          <Link href="/auth/signup" className="text-blue-600 hover:underline">
+          <Button href="/auth/signup" variant="ghost" size="sm">
             สมัครสมาชิก
-          </Link>
+          </Button>
         </div>
       </div>
     </div>

@@ -1,10 +1,10 @@
 "use client";
 
 import type { WeightMetrics } from "@/types/weight";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { UserMenu } from "@/components/user-menu";
 import { useToast } from "@/components/toast";
+import { Button } from "@/components/ui/button";
 
 type RecordData = WeightMetrics;
 
@@ -57,37 +57,35 @@ export default function RecordsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen p-8 flex items-center justify-center">
-        <p className="text-lg">กำลังโหลดข้อมูล...</p>
+      <div className="min-h-screen p-4 md:p-8 flex items-center justify-center">
+        {/* biome-ignore lint/a11y/useSemanticElements: Loading indicator needs role="status" for screen readers */}
+        <div className="text-center" role="status" aria-live="polite">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4" />
+          <p className="text-lg">กำลังโหลดข้อมูล...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-screen p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-end mb-4">
           <UserMenu />
         </div>
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold">ประวัติการบันทึก</h1>
-          <Link
-            href="/weight"
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-          >
+          <h1 className="text-2xl md:text-3xl font-bold">ประวัติการบันทึก</h1>
+          <Button href="/weight" variant="primary" size="md">
             บันทึกข้อมูลใหม่
-          </Link>
+          </Button>
         </div>
 
         {records.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg mb-4">ยังไม่มีข้อมูล</p>
-            <Link
-              href="/weight"
-              className="text-blue-600 hover:underline font-medium"
-            >
+            <Button href="/weight" variant="ghost">
               เริ่มบันทึกข้อมูลแรก
-            </Link>
+            </Button>
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -158,12 +156,13 @@ export default function RecordsPage() {
                 จาก {pagination.total} รายการ
               </div>
               {pagination.totalPages > 1 && (
-                <div className="flex gap-2">
+                <nav className="flex gap-2" aria-label="การนำทางหน้า">
                   <button
                     type="button"
                     onClick={() => handlePageChange(pagination.page - 1)}
                     disabled={pagination.page === 1}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="หน้าก่อนหน้า"
+                    className="min-h-[44px] min-w-[44px] px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     ก่อนหน้า
                   </button>
@@ -188,14 +187,21 @@ export default function RecordsPage() {
                         return (
                           <div key={page} className="flex gap-1">
                             {showEllipsis && (
-                              <span className="px-3 py-2 text-sm text-gray-500">
+                              <span
+                                className="px-3 py-2 text-sm text-gray-500"
+                                aria-hidden="true"
+                              >
                                 ...
                               </span>
                             )}
                             <button
                               type="button"
                               onClick={() => handlePageChange(page)}
-                              className={`px-4 py-2 text-sm font-medium rounded-md ${
+                              aria-label={`หน้า ${page}`}
+                              aria-current={
+                                pagination.page === page ? "page" : undefined
+                              }
+                              className={`min-h-[44px] min-w-[44px] px-4 py-2 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors ${
                                 pagination.page === page
                                   ? "bg-blue-600 text-white"
                                   : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
@@ -211,11 +217,12 @@ export default function RecordsPage() {
                     type="button"
                     onClick={() => handlePageChange(pagination.page + 1)}
                     disabled={pagination.page === pagination.totalPages}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="หน้าถัดไป"
+                    className="min-h-[44px] min-w-[44px] px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     ถัดไป
                   </button>
-                </div>
+                </nav>
               )}
             </div>
           </div>

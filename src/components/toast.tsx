@@ -5,6 +5,7 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   type ReactNode,
 } from "react";
 
@@ -38,14 +39,32 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
 
+  // Handle ESC key to dismiss all toasts
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && toasts.length > 0) {
+        setToasts([]);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [toasts.length]);
+
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div className="fixed top-4 right-4 z-50 space-y-2">
+      {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: Container needs aria-label for notification region */}
+      <div
+        className="fixed top-4 right-4 z-50 space-y-2 max-w-[calc(100vw-2rem)]"
+        aria-label="การแจ้งเตือน"
+        aria-live="polite"
+      >
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`min-w-[300px] max-w-md px-6 py-4 rounded-lg shadow-lg flex items-start justify-between animate-slide-in ${
+            role={toast.type === "error" ? "alert" : "status"}
+            className={`min-w-[280px] md:min-w-[300px] max-w-md px-6 py-4 rounded-lg shadow-lg flex items-start justify-between animate-slide-in ${
               toast.type === "success"
                 ? "bg-green-600 text-white"
                 : toast.type === "error"
@@ -53,14 +72,16 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                   : "bg-blue-600 text-white"
             }`}
           >
-            <p className="text-sm font-medium">{toast.message}</p>
+            <p className="text-sm font-medium pr-2">{toast.message}</p>
             <button
               type="button"
               onClick={() => removeToast(toast.id)}
-              className="ml-4 text-white hover:opacity-80 transition-opacity"
-              aria-label="Close"
+              className="ml-2 text-white hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-transparent rounded transition-all min-h-[44px] min-w-[44px] flex items-center justify-center -mr-2 -mt-1"
+              aria-label={`ปิดการแจ้งเตือน: ${toast.message}`}
             >
-              ✕
+              <span aria-hidden="true" className="text-xl leading-none">
+                ✕
+              </span>
             </button>
           </div>
         ))}

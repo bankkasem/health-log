@@ -1,44 +1,46 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export function UserMenu() {
   const { data: session, status } = useSession();
 
   if (status === "loading") {
-    return <div className="text-sm text-gray-500">กำลังโหลด...</div>;
+    return (
+      // biome-ignore lint/a11y/useSemanticElements: Loading indicator needs role="status" for screen readers
+      <div className="text-sm text-gray-600" role="status" aria-live="polite">
+        กำลังโหลด...
+      </div>
+    );
   }
 
   if (!session) {
     return (
-      <div className="flex gap-4">
-        <Link
-          href="/auth/signin"
-          className="text-blue-600 hover:underline text-sm"
-        >
+      <div className="flex gap-2 md:gap-4">
+        <Button href="/auth/signin" variant="ghost" size="sm">
           เข้าสู่ระบบ
-        </Link>
-        <Link
-          href="/auth/signup"
-          className="text-blue-600 hover:underline text-sm"
-        >
+        </Button>
+        <Button href="/auth/signup" variant="ghost" size="sm">
           สมัครสมาชิก
-        </Link>
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-4">
-      <span className="text-sm text-gray-700">{session.user?.email}</span>
-      <button
-        type="button"
+    <div className="flex items-center gap-2 md:gap-4">
+      <span className="text-sm text-gray-700 truncate max-w-[150px] md:max-w-none">
+        {session.user?.email}
+      </span>
+      <Button
         onClick={() => signOut({ callbackUrl: "/" })}
-        className="text-sm text-red-600 hover:underline"
+        variant="danger"
+        size="sm"
+        aria-label="ออกจากระบบ"
       >
         ออกจากระบบ
-      </button>
+      </Button>
     </div>
   );
 }
