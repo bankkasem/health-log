@@ -99,6 +99,12 @@ This project uses the Next.js App Router (not Pages Router). All routes are defi
 - Uses the **App Router**, not the Pages Router - all routing is file-based in `src/app/`
 - Bun is the preferred package manager (see bun.lock and ignoreScripts config)
 
+## Communication Style
+
+- **Language:** Always respond in Thai. Use professional yet conversational Thai.
+- **Terminology:** Keep technical terms (e.g., API, Refactor, Component) in English where appropriate for clarity, but explain them in Thai context.
+- **Tone:** Be proactive and helpful like a senior pair programmer.
+
 ## Git Commit Conventions
 
 **Always use semantic commit format:**
