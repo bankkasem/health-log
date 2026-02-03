@@ -2,9 +2,13 @@
 
 import type { WeightMetrics } from "@/types/weight";
 import { useEffect, useState } from "react";
+import { FiEdit2, FiTrash2 } from "react-icons/fi";
 import { UserMenu } from "@/components/user-menu";
 import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { EditRecordModal } from "@/components/edit-record-modal";
+import { formatDateTime } from "@/utils/date";
 
 type RecordData = WeightMetrics;
 
@@ -13,6 +17,35 @@ interface Pagination {
   limit: number;
   total: number;
   totalPages: number;
+}
+
+// Skeleton Row Component
+function SkeletonRow() {
+  return (
+    <tr className="animate-pulse">
+      <td className="px-6 py-4">
+        <div className="h-4 bg-gray-200 rounded w-32" />
+      </td>
+      <td className="px-6 py-4">
+        <div className="h-4 bg-gray-200 rounded w-12" />
+      </td>
+      <td className="px-6 py-4">
+        <div className="h-4 bg-gray-200 rounded w-12" />
+      </td>
+      <td className="px-6 py-4">
+        <div className="h-4 bg-gray-200 rounded w-12" />
+      </td>
+      <td className="px-6 py-4">
+        <div className="h-4 bg-gray-200 rounded w-12" />
+      </td>
+      <td className="px-6 py-4">
+        <div className="h-4 bg-gray-200 rounded w-12" />
+      </td>
+      <td className="px-6 py-4">
+        <div className="h-4 bg-gray-200 rounded w-16" />
+      </td>
+    </tr>
+  );
 }
 
 export default function RecordsPage() {
@@ -25,6 +58,16 @@ export default function RecordsPage() {
     total: 0,
     totalPages: 0,
   });
+
+  // Edit/Delete state
+  const [editingRecord, setEditingRecord] = useState<WeightMetrics | null>(
+    null,
+  );
+  const [deletingRecord, setDeletingRecord] = useState<WeightMetrics | null>(
+    null,
+  );
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: fetchRecords should run when pagination.page changes
   useEffect(() => {
@@ -55,17 +98,89 @@ export default function RecordsPage() {
     setPagination((prev) => ({ ...prev, page: newPage }));
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen p-4 md:p-8 flex items-center justify-center">
-        {/* biome-ignore lint/a11y/useSemanticElements: Loading indicator needs role="status" for screen readers */}
-        <div className="text-center" role="status" aria-live="polite">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4" />
-          <p className="text-lg">กำลังโหลดข้อมูล...</p>
-        </div>
-      </div>
-    );
-  }
+  // Delete handlers
+  const handleDeleteClick = (record: WeightMetrics) => {
+    setDeletingRecord(record);
+  };
+
+  const handleDeleteCancel = () => {
+    setDeletingRecord(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingRecord) return;
+
+    try {
+      setIsDeleting(true);
+      const response = await fetch(`/api/weight?id=${deletingRecord.id}`, {
+        method: "DELETE",
+      });
+
+      const result = await response.json();
+
+      if (response.status === 401) {
+        window.location.href = "/api/auth/signin";
+        return;
+      }
+
+      if (result.success) {
+        showToast("ลบข้อมูลเรียบร้อยแล้ว", "success");
+        setDeletingRecord(null);
+        fetchRecords();
+      } else {
+        showToast(result.message || "เกิดข้อผิดพลาดในการลบข้อมูล", "error");
+      }
+    } catch (error) {
+      console.error("Error deleting record:", error);
+      showToast("เกิดข้อผิดพลาดในการลบข้อมูล", "error");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Edit handlers
+  const handleEditClick = (record: WeightMetrics) => {
+    setEditingRecord(record);
+  };
+
+  const handleEditCancel = () => {
+    setEditingRecord(null);
+  };
+
+  const handleEditSave = async (data: Partial<WeightMetrics>) => {
+    if (!editingRecord) return;
+
+    try {
+      setIsUpdating(true);
+      const response = await fetch("/api/weight", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (response.status === 401) {
+        window.location.href = "/api/auth/signin";
+        return;
+      }
+
+      if (result.success) {
+        showToast("แก้ไขข้อมูลเรียบร้อยแล้ว", "success");
+        setEditingRecord(null);
+        fetchRecords();
+      } else {
+        showToast(result.message || "เกิดข้อผิดพลาดในการแก้ไขข้อมูล", "error");
+      }
+    } catch (error) {
+      console.error("Error updating record:", error);
+      showToast("เกิดข้อผิดพลาดในการแก้ไขข้อมูล", "error");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   return (
     <div className="min-h-screen p-4 md:p-8">
@@ -80,8 +195,62 @@ export default function RecordsPage() {
           </Button>
         </div>
 
-        {records.length === 0 ? (
-          <div className="text-center py-12">
+        {isLoading ? (
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      วันที่/เวลา
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      ไขมัน (%)
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      กล้ามเนื้อ (kg)
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      ไขมันช่องท้อง
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      BMR
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      BMI
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      จัดการ
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {[...Array(5)].map((_, i) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: skeleton rows don't have unique ids
+                    <SkeletonRow key={i} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : records.length === 0 ? (
+          <div className="text-center py-12 bg-white rounded-lg shadow">
+            <div className="text-gray-400 mb-4">
+              <svg
+                className="mx-auto h-12 w-12"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+            </div>
             <p className="text-gray-500 text-lg mb-4">ยังไม่มีข้อมูล</p>
             <Button href="/weight" variant="ghost">
               เริ่มบันทึกข้อมูลแรก
@@ -111,19 +280,21 @@ export default function RecordsPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       BMI
                     </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      จัดการ
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {records.map((record) => (
-                    <tr key={record.id} className="hover:bg-gray-50">
+                  {records.map((record, index) => (
+                    <tr
+                      key={record.id}
+                      className={`hover:bg-gray-50 transition-colors ${
+                        index % 2 === 1 ? "bg-gray-50/50" : ""
+                      }`}
+                    >
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(record.timestamp).toLocaleString("th-TH", {
-                          year: "numeric",
-                          month: "2-digit",
-                          day: "2-digit",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {formatDateTime(record.timestamp)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {record.bodyFatPercentage}
@@ -139,6 +310,26 @@ export default function RecordsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {record.bmi}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleEditClick(record)}
+                            className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            aria-label={`แก้ไขข้อมูลวันที่ ${new Date(record.timestamp).toLocaleDateString("th-TH")}`}
+                          >
+                            <FiEdit2 className="h-5 w-5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteClick(record)}
+                            className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                            aria-label={`ลบข้อมูลวันที่ ${new Date(record.timestamp).toLocaleDateString("th-TH")}`}
+                          >
+                            <FiTrash2 className="h-5 w-5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -228,6 +419,38 @@ export default function RecordsPage() {
           </div>
         )}
       </div>
+
+      {/* Confirm Delete Dialog */}
+      <ConfirmDialog
+        isOpen={deletingRecord !== null}
+        title="ยืนยันการลบข้อมูล"
+        message={
+          deletingRecord ? (
+            <>
+              คุณต้องการลบข้อมูลวันที่{" "}
+              <strong>{formatDateTime(deletingRecord.timestamp)}</strong> หรือไม่?
+              การดำเนินการนี้ไม่สามารถยกเลิกได้
+            </>
+          ) : (
+            ""
+          )
+        }
+        confirmLabel="ลบ"
+        cancelLabel="ยกเลิก"
+        variant="danger"
+        isLoading={isDeleting}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
+
+      {/* Edit Record Modal */}
+      <EditRecordModal
+        isOpen={editingRecord !== null}
+        record={editingRecord}
+        isLoading={isUpdating}
+        onSave={handleEditSave}
+        onCancel={handleEditCancel}
+      />
     </div>
   );
 }
