@@ -49,16 +49,22 @@ This project uses the Next.js App Router (not Pages Router). All routes are defi
 
 **Shared Code:**
 - `src/types/weight.ts` - TypeScript interfaces for weight metrics
+- `src/types/auth.ts` - TypeScript interfaces for authentication
 - `src/app/api/weight/route.ts` - API route for weight data operations
+- `src/app/api/auth/[...nextauth]/route.ts` - NextAuth API handler
+- `src/lib/auth/config.ts` - NextAuth configuration
+- `src/lib/supabase/server.ts` - Supabase admin client (server-side)
+- `src/lib/supabase/client.ts` - Supabase client (client-side)
 
 ### Features
 
 **Weight Tracking:**
 - Form to collect weight metrics: body fat percentage, muscle mass, visceral fat, BMR, and BMI
-- Data saved to `data/weight-log.xlsx` in the workspace
-- Uses Next.js API route (`/api/weight`) for server-side file operations
-- Excel file has Thai column headers with automatic timestamp
-- Works in all browsers (server-side file operations)
+- Data saved to Supabase PostgreSQL database
+- Uses Next.js API route (`/api/weight`) for server-side database operations
+- User authentication with NextAuth v4
+- Row-Level Security (RLS) ensures users only see their own data
+- Timestamps stored in ISO format, displayed in Thai locale
 
 **Code Conventions:**
 - Use English for all variable/function names
@@ -92,3 +98,44 @@ This project uses the Next.js App Router (not Pages Router). All routes are defi
 - This project uses **Biome** for linting/formatting, not ESLint or Prettier
 - Uses the **App Router**, not the Pages Router - all routing is file-based in `src/app/`
 - Bun is the preferred package manager (see bun.lock and ignoreScripts config)
+
+## Git Commit Conventions
+
+**Always use semantic commit format:**
+```
+type(scope): subject
+
+- Detailed change 1
+- Detailed change 2
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+```
+
+**Types:**
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, no logic change)
+- `refactor`: Code refactoring
+- `test`: Adding or updating tests
+- `chore`: Maintenance tasks (dependencies, build config)
+- `perf`: Performance improvements
+
+**Scopes (examples):**
+- `auth`: Authentication-related
+- `api`: API routes
+- `ui`: User interface components
+- `deps`: Dependencies
+- `config`: Configuration files
+- `db`: Database-related
+
+**Example:**
+```bash
+git commit -m "feat(auth): add user sign-in page
+
+- Create sign-in form with email/password
+- Add error handling for invalid credentials
+- Redirect to dashboard after successful login
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+```

@@ -1,10 +1,14 @@
 "use client";
 
-import type { WeightFormData, WeightMetrics } from "@/types/weight";
-import Link from "next/link";
+import type { WeightFormData, WeightMetricsInput } from "@/types/weight";
 import { useState } from "react";
+import { UserMenu } from "@/components/user-menu";
+import { useToast } from "@/components/toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function WeightPage() {
+  const { showToast } = useToast();
   const [formData, setFormData] = useState<WeightFormData>({
     bodyFatPercentage: "",
     muscleMass: "",
@@ -19,8 +23,8 @@ export default function WeightPage() {
     setIsSubmitting(true);
 
     try {
-      const entry: WeightMetrics = {
-        timestamp: new Date().toLocaleString("th-TH"),
+      const entry: WeightMetricsInput = {
+        timestamp: new Date().toISOString(),
         bodyFatPercentage: Number.parseFloat(formData.bodyFatPercentage),
         muscleMass: Number.parseFloat(formData.muscleMass),
         visceralFat: Number.parseFloat(formData.visceralFat),
@@ -39,7 +43,7 @@ export default function WeightPage() {
       const result = await response.json();
 
       if (result.success) {
-        alert(result.message);
+        showToast(result.message, "success");
         setFormData({
           bodyFatPercentage: "",
           muscleMass: "",
@@ -48,11 +52,11 @@ export default function WeightPage() {
           bmi: "",
         });
       } else {
-        alert(`เกิดข้อผิดพลาด: ${result.message}`);
+        showToast(`เกิดข้อผิดพลาด: ${result.message}`, "error");
       }
     } catch (error) {
-      console.error("Error saving to file:", error);
-      alert("เกิดข้อผิดพลาดในการบันทึกไฟล์");
+      console.error("Error saving data:", error);
+      showToast("เกิดข้อผิดพลาดในการบันทึกข้อมูล", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -66,114 +70,83 @@ export default function WeightPage() {
   };
 
   return (
-    <div className="min-h-screen p-8 max-w-2xl mx-auto">
+    <div className="min-h-screen p-4 md:p-8 max-w-2xl mx-auto">
+      <div className="flex justify-end mb-4">
+        <UserMenu />
+      </div>
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold">บันทึกข้อมูลสุขภาพ</h1>
-        <Link
-          href="/records"
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-        >
+        <h1 className="text-2xl md:text-3xl font-bold">บันทึกข้อมูลสุขภาพ</h1>
+        <Button href="/records" variant="primary" size="md">
           ดูประวัติ
-        </Link>
+        </Button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label
-            htmlFor="bodyFatPercentage"
-            className="block text-sm font-medium mb-2"
-          >
-            เปอร์เซ็นต์ไขมันในร่างกาย (%)
-          </label>
-          <input
-            type="number"
-            step="0.1"
-            id="bodyFatPercentage"
-            name="bodyFatPercentage"
-            value={formData.bodyFatPercentage}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
+        <Input
+          label="เปอร์เซ็นต์ไขมันในร่างกาย (%)"
+          type="number"
+          step="0.1"
+          id="bodyFatPercentage"
+          name="bodyFatPercentage"
+          value={formData.bodyFatPercentage}
+          onChange={handleChange}
+          required
+        />
 
-        <div>
-          <label
-            htmlFor="muscleMass"
-            className="block text-sm font-medium mb-2"
-          >
-            มวลกล้ามเนื้อ (kg)
-          </label>
-          <input
-            type="number"
-            step="0.1"
-            id="muscleMass"
-            name="muscleMass"
-            value={formData.muscleMass}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
+        <Input
+          label="มวลกล้ามเนื้อ (kg)"
+          type="number"
+          step="0.1"
+          id="muscleMass"
+          name="muscleMass"
+          value={formData.muscleMass}
+          onChange={handleChange}
+          required
+        />
 
-        <div>
-          <label
-            htmlFor="visceralFat"
-            className="block text-sm font-medium mb-2"
-          >
-            ไขมันในช่องท้อง
-          </label>
-          <input
-            type="number"
-            step="0.1"
-            id="visceralFat"
-            name="visceralFat"
-            value={formData.visceralFat}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
+        <Input
+          label="ไขมันในช่องท้อง"
+          type="number"
+          step="0.1"
+          id="visceralFat"
+          name="visceralFat"
+          value={formData.visceralFat}
+          onChange={handleChange}
+          required
+        />
 
-        <div>
-          <label htmlFor="bmr" className="block text-sm font-medium mb-2">
-            อัตราการเผาผลาญพื้นฐาน (BMR)
-          </label>
-          <input
-            type="number"
-            step="1"
-            id="bmr"
-            name="bmr"
-            value={formData.bmr}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
+        <Input
+          label="อัตราการเผาผลาญพื้นฐาน (BMR)"
+          type="number"
+          step="1"
+          id="bmr"
+          name="bmr"
+          value={formData.bmr}
+          onChange={handleChange}
+          required
+        />
 
-        <div>
-          <label htmlFor="bmi" className="block text-sm font-medium mb-2">
-            ดัชนีมวลกาย (BMI)
-          </label>
-          <input
-            type="number"
-            step="0.1"
-            id="bmi"
-            name="bmi"
-            value={formData.bmi}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
+        <Input
+          label="ดัชนีมวลกาย (BMI)"
+          type="number"
+          step="0.1"
+          id="bmi"
+          name="bmi"
+          value={formData.bmi}
+          onChange={handleChange}
+          required
+        />
 
-        <button
+        <Button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+          loading={isSubmitting}
+          variant="success"
+          size="md"
+          className="w-full"
         >
-          {isSubmitting ? "กำลังบันทึก..." : "บันทึกลงไฟล์"}
-        </button>
+          {isSubmitting ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
+        </Button>
       </form>
     </div>
   );
