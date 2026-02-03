@@ -4,7 +4,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { auth } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await auth();
 
@@ -15,11 +15,24 @@ export async function GET() {
       );
     }
 
+    const searchParams = request.nextUrl.searchParams;
+    const page = Number.parseInt(searchParams.get("page") || "1", 10);
+    const limit = Number.parseInt(searchParams.get("limit") || "10", 10);
+    const offset = (page - 1) * limit;
+
+    // Get total count for pagination
+    const { count } = await supabaseAdmin
+      .from("weight_metrics")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", session.user.id);
+
+    // Get paginated data
     const { data, error } = await supabaseAdmin
       .from("weight_metrics")
       .select("*")
       .eq("user_id", session.user.id)
-      .order("timestamp", { ascending: false });
+      .order("timestamp", { ascending: false })
+      .range(offset, offset + limit - 1);
 
     if (error) {
       console.error("Error fetching weight metrics:", error);
@@ -31,7 +44,16 @@ export async function GET() {
 
     const metrics = (data as DatabaseWeightMetric[]).map(toWeightMetrics);
 
-    return NextResponse.json({ success: true, data: metrics });
+    return NextResponse.json({
+      success: true,
+      data: metrics,
+      pagination: {
+        page,
+        limit,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / limit),
+      },
+    });
   } catch (error) {
     console.error("Error reading weight metrics:", error);
     return NextResponse.json(
