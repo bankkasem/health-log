@@ -6,6 +6,54 @@ import { UserMenu } from "@/components/user-menu";
 import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  FiActivity,
+  FiClipboard,
+  FiDroplet,
+  FiZap,
+  FiBarChart2,
+  FiSave,
+  FiArrowLeft,
+  FiTrendingUp,
+} from "react-icons/fi";
+
+const formFields = [
+  {
+    name: "bodyFatPercentage" as keyof WeightFormData,
+    label: "เปอร์เซ็นต์ไขมันในร่างกาย (%)",
+    icon: <FiDroplet className="w-5 h-5" />,
+    step: "0.1",
+    description: "เปอร์เซ็นต์ไขมันรวมในร่างกาย",
+  },
+  {
+    name: "muscleMass" as keyof WeightFormData,
+    label: "มวลกล้ามเนื้อ (kg)",
+    icon: <FiActivity className="w-5 h-5" />,
+    step: "0.1",
+    description: "น้ำหนักของกล้ามเนื้อทั้งหมด",
+  },
+  {
+    name: "visceralFat" as keyof WeightFormData,
+    label: "ไขมันในช่องท้อง",
+    icon: <FiBarChart2 className="w-5 h-5" />,
+    step: "0.1",
+    description: "ระดับไขมันอวัยวะภายใน",
+  },
+  {
+    name: "bmr" as keyof WeightFormData,
+    label: "อัตราการเผาผลาญพื้นฐาน (BMR)",
+    icon: <FiZap className="w-5 h-5" />,
+    step: "1",
+    description: "แคลอรี่ที่เผาผลาญขณะพัก",
+  },
+  {
+    name: "bmi" as keyof WeightFormData,
+    label: "ดัชนีมวลกาย (BMI)",
+    icon: <FiTrendingUp className="w-5 h-5" />,
+    step: "0.1",
+    description: "ดัชนีมวลกายเทียบส่วนสูง",
+  },
+];
 
 export default function WeightPage() {
   const { showToast } = useToast();
@@ -70,84 +118,114 @@ export default function WeightPage() {
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-8 max-w-2xl mx-auto">
-      <div className="flex justify-end mb-4">
-        <UserMenu />
-      </div>
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold">บันทึกข้อมูลสุขภาพ</h1>
-        <Button href="/records" variant="primary" size="md">
-          ดูประวัติ
-        </Button>
+    <div className="min-h-screen relative">
+      {/* Background Decorations */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400/15 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-400/15 rounded-full blur-3xl" />
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <Input
-          label="เปอร์เซ็นต์ไขมันในร่างกาย (%)"
-          type="number"
-          step="0.1"
-          id="bodyFatPercentage"
-          name="bodyFatPercentage"
-          value={formData.bodyFatPercentage}
-          onChange={handleChange}
-          required
-        />
+      <div className="relative z-10 p-4 md:p-8 max-w-2xl mx-auto">
+        {/* Header */}
+        <div className="flex justify-end mb-4">
+          <UserMenu />
+        </div>
 
-        <Input
-          label="มวลกล้ามเนื้อ (kg)"
-          type="number"
-          step="0.1"
-          id="muscleMass"
-          name="muscleMass"
-          value={formData.muscleMass}
-          onChange={handleChange}
-          required
-        />
+        {/* Page Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+              <FiActivity className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
+                บันทึกข้อมูลสุขภาพ
+              </h1>
+              <p className="text-slate-600 text-sm">
+                บันทึกข้อมูลเพื่อติดตามความก้าวหน้า
+              </p>
+            </div>
+          </div>
+          <Button href="/records" variant="outline" size="md">
+            <FiClipboard className="w-5 h-5" />
+            ดูประวัติ
+          </Button>
+        </div>
 
-        <Input
-          label="ไขมันในช่องท้อง"
-          type="number"
-          step="0.1"
-          id="visceralFat"
-          name="visceralFat"
-          value={formData.visceralFat}
-          onChange={handleChange}
-          required
-        />
+        {/* Form Card */}
+        <div className="glass rounded-2xl p-6 md:p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid gap-6">
+              {formFields.map((field, index) => (
+                <div
+                  key={field.name}
+                  className="animate-slide-in-up"
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  <Input
+                    label={field.label}
+                    type="number"
+                    step={field.step}
+                    id={field.name}
+                    name={field.name}
+                    value={formData[field.name]}
+                    onChange={handleChange}
+                    required
+                    icon={field.icon}
+                    placeholder="0.0"
+                    helperText={field.description}
+                  />
+                </div>
+              ))}
+            </div>
 
-        <Input
-          label="อัตราการเผาผลาญพื้นฐาน (BMR)"
-          type="number"
-          step="1"
-          id="bmr"
-          name="bmr"
-          value={formData.bmr}
-          onChange={handleChange}
-          required
-        />
+            <div className="pt-4 flex flex-col sm:flex-row gap-4">
+              <Button
+                href="/"
+                variant="secondary"
+                size="lg"
+                className="sm:flex-1"
+              >
+                <FiArrowLeft className="w-5 h-5" />
+                กลับหน้าหลัก
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                loading={isSubmitting}
+                variant="success"
+                size="lg"
+                className="sm:flex-[2]"
+              >
+                <FiSave className="w-5 h-5" />
+                {isSubmitting ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
+              </Button>
+            </div>
+          </form>
+        </div>
 
-        <Input
-          label="ดัชนีมวลกาย (BMI)"
-          type="number"
-          step="0.1"
-          id="bmi"
-          name="bmi"
-          value={formData.bmi}
-          onChange={handleChange}
-          required
-        />
-
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          loading={isSubmitting}
-          variant="success"
-          size="md"
-          className="w-full"
-        >
-          {isSubmitting ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
-        </Button>
-      </form>
+        {/* Tips Section */}
+        <div className="mt-8 glass rounded-2xl p-6">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+            <FiTrendingUp className="w-5 h-5 text-blue-600" />
+            เคล็ดลับการบันทึก
+          </h3>
+          <ul className="space-y-2 text-sm text-slate-600">
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
+              บันทึกข้อมูลในช่วงเวลาเดียวกันของแต่ละวันเพื่อความแม่นยำ
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
+              ใช้เครื่องชั่งเดิมเพื่อให้ผลลัพธ์สอดคล้องกัน
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
+              ตรวจสอบข้อมูลก่อนบันทึกเพื่อความถูกต้อง
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
   );
 }
