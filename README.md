@@ -4,12 +4,15 @@ A health and wellness tracking application built with Next.js 16, React 19, and 
 
 ## Features
 
-- 🔐 **User Authentication** - Email/Password authentication with NextAuth v4
+- 🔐 **User Authentication** - Secure email/password authentication with NextAuth v4 and Supabase Auth
 - 📊 **Weight Tracking** - Track body fat percentage, muscle mass, visceral fat, BMR, and BMI
-- 📝 **Historical Records** - View all your past health metrics
-- 🔒 **Data Privacy** - User data is isolated with Row-Level Security (RLS)
-- 🎨 **Modern UI** - Clean interface with Tailwind CSS v4
-- ⚡ **Fast & Secure** - Built on Next.js 16 with TypeScript
+- ✏️ **Record Management** - Add, edit, and delete health records with real-time UI updates
+- 📝 **Historical Records** - Paginated view of all past health metrics with chronological ordering
+- 🔒 **Data Privacy** - Row-Level Security (RLS) ensures users only access their own data
+- 🎨 **Modern UI** - Clean, responsive interface with Tailwind CSS v4
+- ⚡ **Fast Performance** - Server-side rendering with Next.js 16 App Router
+- 📱 **Mobile-Friendly** - Touch-friendly interface with minimum 44px touch targets
+- 🔔 **Toast Notifications** - User feedback for all actions
 
 ## Getting Started
 
@@ -30,11 +33,15 @@ bun install
 
 Copy `.env.example` to `.env.local` and fill in your Supabase credentials.
 
-See [QUICK_START.md](./docs/QUICK_START.md) for a quick setup guide, or [SETUP.md](./docs/SETUP.md) for detailed instructions on:
-- Creating a Supabase project
-- Setting up the database schema
-- Configuring environment variables
-- Testing the authentication flow
+Create a `.env.local` file with the following variables:
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+NEXTAUTH_SECRET=your_nextauth_secret
+NEXTAUTH_URL=http://localhost:3000
+```
+
+For database setup, see [supabase-schema.sql](./supabase-schema.sql).
 
 3. **Run the development server:**
 
@@ -68,19 +75,32 @@ Open [http://localhost:3000](http://localhost:3000) with your browser.
 src/
 ├── app/
 │   ├── api/
-│   │   ├── auth/          # Authentication API routes
-│   │   └── weight/        # Weight metrics API
-│   ├── auth/              # Auth pages (sign in/up)
-│   ├── records/           # Records viewing page
-│   ├── weight/            # Weight tracking page
-│   └── layout.tsx         # Root layout with session
+│   │   ├── auth/
+│   │   │   ├── [...nextauth]/     # NextAuth API routes
+│   │   │   └── signup/            # User registration
+│   │   └── weight/                # Weight metrics CRUD API
+│   ├── auth/
+│   │   ├── signin/                # Sign in page
+│   │   └── signup/                # Sign up page
+│   ├── records/                   # Historical records page
+│   ├── weight/                    # Weight tracking form
+│   ├── layout.tsx                 # Root layout with providers
+│   ├── page.tsx                   # Home page
+│   └── globals.css                # Global styles & Tailwind
 ├── components/
-│   ├── providers/         # Session provider
-│   └── user-menu.tsx      # User menu component
+│   ├── ui/                        # Reusable UI components
+│   │   ├── button.tsx
+│   │   ├── confirm-dialog.tsx
+│   │   └── input.tsx
+│   ├── providers/                 # Context providers
+│   ├── edit-record-modal.tsx
+│   ├── toast.tsx
+│   └── user-menu.tsx
 ├── lib/
-│   ├── auth/              # NextAuth configuration
-│   └── supabase/          # Supabase clients
-└── types/                 # TypeScript type definitions
+│   ├── auth/                      # NextAuth configuration
+│   └── supabase/                  # Supabase clients
+├── types/                         # TypeScript type definitions
+└── utils/                         # Utility functions
 ```
 
 ## Authentication Flow
@@ -92,19 +112,30 @@ src/
 5. Protected routes accessible after authentication
 6. User data isolated by Row-Level Security
 
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/signup` - Create new user account
+- `GET/POST /api/auth/[...nextauth]` - NextAuth.js endpoints
+
+### Weight Metrics
+- `GET /api/weight` - List user's weight records (paginated)
+- `POST /api/weight` - Create new weight record
+- `PUT /api/weight` - Update existing record
+- `DELETE /api/weight?id={id}` - Delete record
+
 ## Security
 
 - ✅ Passwords hashed with bcryptjs
-- ✅ JWT sessions (stateless)
-- ✅ Row-Level Security (RLS) on database
-- ✅ Service role key only used server-side
-- ✅ Protected routes with middleware
-- ✅ User data isolated by user_id
+- ✅ JWT sessions (stateless authentication)
+- ✅ Row-Level Security (RLS) on all database tables
+- ✅ Service role key only used server-side (never exposed to client)
+- ✅ Protected routes with NextAuth middleware
+- ✅ User data strictly isolated by user_id
+- ✅ Input validation on all API endpoints
+- ✅ Ownership verification before updates/deletions
 
 ## Documentation
 
-- [QUICK_START.md](./docs/QUICK_START.md) - Quick setup guide (start here!)
-- [SETUP.md](./docs/SETUP.md) - Detailed setup instructions
-- [IMPLEMENTATION_SUMMARY.md](./docs/IMPLEMENTATION_SUMMARY.md) - Technical implementation details
-- [CLAUDE.md](./CLAUDE.md) - Project conventions for AI assistance
-- [supabase-schema.sql](./supabase-schema.sql) - Database schema
+- [AGENTS.md](./AGENTS.md) - Development guidelines and code conventions for AI assistants
+- [supabase-schema.sql](./supabase-schema.sql) - Database schema and setup
