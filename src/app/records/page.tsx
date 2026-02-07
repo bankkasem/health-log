@@ -2,6 +2,7 @@
 
 import type { WeightMetrics } from "@/types/weight";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import {
   FiEdit2,
   FiTrash2,
@@ -21,6 +22,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EditRecordModal } from "@/components/edit-record-modal";
 import { formatDateTime } from "@/utils/date";
 import { ProfileCheck } from "@/components/profile-check";
+import Link from "next/link";
 
 type RecordData = WeightMetrics;
 
@@ -101,6 +103,7 @@ function StatCard({
 
 export default function RecordsPage() {
   const { showToast } = useToast();
+  const { data: session } = useSession();
   const [records, setRecords] = useState<RecordData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [pagination, setPagination] = useState<Pagination>({
@@ -254,7 +257,10 @@ export default function RecordsPage() {
 
             {/* Page Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-              <div className="flex items-center gap-3">
+              <Link
+                href="/"
+                className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+              >
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-green-500/30">
                   <FiClipboard className="w-6 h-6 text-white" />
                 </div>
@@ -268,7 +274,7 @@ export default function RecordsPage() {
                       : "ยังไม่มีข้อมูล"}
                   </p>
                 </div>
-              </div>
+              </Link>
               <Button href="/weight" variant="primary" size="md">
                 <FiPlus className="w-5 h-5" />
                 บันทึกข้อมูลใหม่
@@ -277,7 +283,7 @@ export default function RecordsPage() {
 
             {/* Stats Cards - Show latest values */}
             {!isLoading && latestRecord && (
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+              <div className="grid grid-cols-3 gap-4 mb-8">
                 <StatCard
                   icon={<FiCalendar className="w-5 h-5 text-white" />}
                   label="ล่าสุด"
@@ -288,27 +294,33 @@ export default function RecordsPage() {
                   color="purple"
                 />
                 <StatCard
+                  icon={<FiTrendingUp className="w-5 h-5 text-white" />}
+                  label="น้ำหนัก (kg)"
+                  value={latestRecord.weight.toFixed(2)}
+                  color="purple"
+                />
+                <StatCard
                   icon={<FiDroplet className="w-5 h-5 text-white" />}
                   label="ไขมัน (%)"
-                  value={latestRecord.bodyFatPercentage}
+                  value={latestRecord.bodyFatPercentage.toFixed(2)}
                   color="blue"
                 />
                 <StatCard
                   icon={<FiActivity className="w-5 h-5 text-white" />}
                   label="กล้ามเนื้อ (kg)"
-                  value={latestRecord.muscleMass}
+                  value={latestRecord.muscleMass.toFixed(2)}
                   color="green"
                 />
                 <StatCard
                   icon={<FiZap className="w-5 h-5 text-white" />}
                   label="BMR"
-                  value={latestRecord.bmr}
+                  value={latestRecord.bmr.toFixed(2)}
                   color="orange"
                 />
                 <StatCard
-                  icon={<FiTrendingUp className="w-5 h-5 text-white" />}
+                  icon={<FiBarChart2 className="w-5 h-5 text-white" />}
                   label="BMI"
-                  value={latestRecord.bmi}
+                  value={latestRecord.bmi.toFixed(2)}
                   color="red"
                 />
               </div>
@@ -377,13 +389,13 @@ export default function RecordsPage() {
                           วันที่/เวลา
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                          น้ำหนัก (kg)
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                           ไขมัน (%)
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                           กล้ามเนื้อ (kg)
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                          ไขมันช่องท้อง
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                           BMR
@@ -409,32 +421,32 @@ export default function RecordsPage() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
                             <span className="inline-flex items-center gap-1.5">
+                              <FiTrendingUp className="w-4 h-4 text-violet-500" />
+                              {record.weight.toFixed(2)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
+                            <span className="inline-flex items-center gap-1.5">
                               <FiDroplet className="w-4 h-4 text-blue-500" />
-                              {record.bodyFatPercentage}%
+                              {record.bodyFatPercentage.toFixed(2)}%
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
                             <span className="inline-flex items-center gap-1.5">
                               <FiActivity className="w-4 h-4 text-emerald-500" />
-                              {record.muscleMass}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
-                            <span className="inline-flex items-center gap-1.5">
-                              <FiBarChart2 className="w-4 h-4 text-orange-500" />
-                              {record.visceralFat}
+                              {record.muscleMass.toFixed(2)}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
                             <span className="inline-flex items-center gap-1.5">
                               <FiZap className="w-4 h-4 text-amber-500" />
-                              {record.bmr}
+                              {record.bmr.toFixed(2)}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
                             <span className="inline-flex items-center gap-1.5">
-                              <FiTrendingUp className="w-4 h-4 text-violet-500" />
-                              {record.bmi}
+                              <FiBarChart2 className="w-4 h-4 text-orange-500" />
+                              {record.bmi.toFixed(2)}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -585,6 +597,7 @@ export default function RecordsPage() {
           isLoading={isUpdating}
           onSave={handleEditSave}
           onCancel={handleEditCancel}
+          user={session?.user}
         />
       </div>
     </ProfileCheck>
