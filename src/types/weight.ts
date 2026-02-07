@@ -3,7 +3,8 @@ export interface WeightMetrics {
   timestamp: string;
   bodyFatPercentage: number;
   muscleMass: number;
-  visceralFat: number;
+  visceralFat?: number;
+  weight: number;
   bmr: number;
   bmi: number;
 }
@@ -11,9 +12,8 @@ export interface WeightMetrics {
 export interface WeightFormData {
   bodyFatPercentage: string;
   muscleMass: string;
-  visceralFat: string;
-  bmr: string;
-  bmi: string;
+  weight: string;
+  visceralFat?: string;
 }
 
 export type WeightMetricsInput = Omit<WeightMetrics, "id">;
@@ -24,7 +24,8 @@ export interface DatabaseWeightMetric {
   timestamp: string;
   body_fat_percentage: number;
   muscle_mass: number;
-  visceral_fat: number;
+  visceral_fat?: number;
+  weight: number;
   bmr: number;
   bmi: number;
   created_at: string;
@@ -37,7 +38,9 @@ export function toWeightMetrics(dbMetric: DatabaseWeightMetric): WeightMetrics {
     timestamp: dbMetric.timestamp,
     bodyFatPercentage: dbMetric.body_fat_percentage,
     muscleMass: dbMetric.muscle_mass,
-    visceralFat: dbMetric.visceral_fat,
+    ...(dbMetric.visceral_fat !== undefined &&
+      dbMetric.visceral_fat !== null && { visceralFat: dbMetric.visceral_fat }),
+    weight: dbMetric.weight,
     bmr: dbMetric.bmr,
     bmi: dbMetric.bmi,
   };
