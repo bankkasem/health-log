@@ -5,21 +5,23 @@ import type { WeightMetrics } from "@/types/weight";
 import { formatDateTime } from "@/utils/date";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import type { User } from "@/types/auth";
 
 interface EditRecordModalProps {
   isOpen: boolean;
   record: WeightMetrics | null;
   isLoading?: boolean;
-  onSave: (data: Partial<WeightMetrics>) => void;
+  onSave: (data: Partial<WeightMetrics> & { timestamp?: string }) => void;
   onCancel: () => void;
+  user?: User;
 }
 
 interface FormState {
   bodyFatPercentage: string;
   muscleMass: string;
-  visceralFat: string;
-  bmr: string;
-  bmi: string;
+  weight: string;
+  timestamp: string;
+  visceralFat?: string;
 }
 
 export function EditRecordModal({
@@ -34,9 +36,8 @@ export function EditRecordModal({
   const [formData, setFormData] = useState<FormState>({
     bodyFatPercentage: "",
     muscleMass: "",
-    visceralFat: "",
-    bmr: "",
-    bmi: "",
+    weight: "",
+    timestamp: "",
   });
 
   // Reset form when record changes
@@ -45,9 +46,11 @@ export function EditRecordModal({
       setFormData({
         bodyFatPercentage: record.bodyFatPercentage.toString(),
         muscleMass: record.muscleMass.toString(),
-        visceralFat: record.visceralFat.toString(),
-        bmr: record.bmr.toString(),
-        bmi: record.bmi.toString(),
+        weight: record.weight?.toString() || "",
+        timestamp: record.timestamp.split("T")[0], // Extract date part for date input
+        ...(record.visceralFat !== undefined && {
+          visceralFat: record.visceralFat.toString(),
+        }),
       });
     }
   }, [record]);
@@ -100,13 +103,21 @@ export function EditRecordModal({
     e.preventDefault();
     if (!record) return;
 
+    // Create timestamp from date input (set to noon to avoid timezone issues)
+    const timestamp = formData.timestamp
+      ? new Date(`${formData.timestamp}T12:00:00`).toISOString()
+      : record.timestamp;
+
     onSave({
       id: record.id,
       bodyFatPercentage: Number.parseFloat(formData.bodyFatPercentage),
       muscleMass: Number.parseFloat(formData.muscleMass),
-      visceralFat: Number.parseFloat(formData.visceralFat),
-      bmr: Number.parseFloat(formData.bmr),
-      bmi: Number.parseFloat(formData.bmi),
+      weight: Number.parseFloat(formData.weight),
+      timestamp,
+      ...(formData.visceralFat &&
+        formData.visceralFat !== "" && {
+          visceralFat: Number.parseFloat(formData.visceralFat),
+        }),
     });
   };
 
@@ -145,7 +156,27 @@ export function EditRecordModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
-            label="เปอร์เซ็นต์ไขมัน"
+            label="วันที่"
+            type="date"
+            value={formData.timestamp}
+            onChange={(e) => handleChange("timestamp", e.target.value)}
+            required
+            disabled={isLoading}
+          />
+
+          <Input
+            label="น้ำหนัก (kg)"
+            type="number"
+            step="0.1"
+            min="0"
+            value={formData.weight}
+            onChange={(e) => handleChange("weight", e.target.value)}
+            required
+            disabled={isLoading}
+          />
+
+          <Input
+            label="เปอร์เซ็นต์ไขมัน (%)"
             type="number"
             step="0.1"
             min="0"
@@ -167,38 +198,10 @@ export function EditRecordModal({
             disabled={isLoading}
           />
 
-          <Input
-            label="ไขมันในช่องท้อง"
-            type="number"
-            step="0.1"
-            min="0"
-            value={formData.visceralFat}
-            onChange={(e) => handleChange("visceralFat", e.target.value)}
-            required
-            disabled={isLoading}
-          />
-
-          <Input
-            label="BMR (Basal Metabolic Rate)"
-            type="number"
-            step="1"
-            min="0"
-            value={formData.bmr}
-            onChange={(e) => handleChange("bmr", e.target.value)}
-            required
-            disabled={isLoading}
-          />
-
-          <Input
-            label="BMI (Body Mass Index)"
-            type="number"
-            step="0.1"
-            min="0"
-            value={formData.bmi}
-            onChange={(e) => handleChange("bmi", e.target.value)}
-            required
-            disabled={isLoading}
-          />
+          <div className="p-3 bg-blue-50 rounded-lg text-sm text-slate-600">
+            <p className="font-medium mb-1">หมายเหตุ:</p>
+            <p>BMR และ BMI จะคำนวณอัตโนมัติจากน้ำหนักและข้อมูลโปรไฟล์ของคุณ</p>
+          </div>
 
           <div className="flex justify-end gap-3 pt-4">
             <Button

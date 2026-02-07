@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { ProfileForm } from "@/components/profile-form";
 import type { User } from "@/types/auth";
 
@@ -59,9 +60,11 @@ export default function ProfilePage() {
       <div className="max-w-2xl mx-auto">
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-slate-800 mb-2">
-              โปรไฟล์ของคุณ
-            </h1>
+            <Link href="/" className="hover:opacity-80 transition-opacity">
+              <h1 className="text-3xl font-bold text-slate-800 mb-2">
+                โปรไฟล์ของคุณ
+              </h1>
+            </Link>
             <p className="text-slate-600">
               กรุณากรอกข้อมูลส่วนตัวเพื่อใช้ในการคำนวณค่าต่างๆ
             </p>
