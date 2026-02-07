@@ -1,8 +1,9 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { FiLogOut } from "react-icons/fi";
+import { FiLogOut, FiUser } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export function UserMenu() {
   const { data: session, status } = useSession();
@@ -34,6 +35,14 @@ export function UserMenu() {
       <span className="text-sm text-gray-700 truncate max-w-[150px] md:max-w-none">
         {session.user?.email}
       </span>
+      <Link
+        href="/profile"
+        className="flex items-center justify-center h-9 w-9 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        aria-label="โปรไฟล์"
+        title="โปรไฟล์"
+      >
+        <FiUser className="h-5 w-5" />
+      </Link>
       <button
         type="button"
         onClick={() => signOut({ callbackUrl: "/" })}
