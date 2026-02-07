@@ -5,10 +5,12 @@ A health and wellness tracking application built with Next.js 16, React 19, and 
 ## Features
 
 - 🔐 **User Authentication** - Secure email/password authentication with NextAuth v4 and Supabase Auth
+- 👤 **User Profile** - Collect demographic data (gender, date of birth, height) for accurate health calculations
 - 📊 **Weight Tracking** - Track body fat percentage, muscle mass, visceral fat, BMR, and BMI
 - ✏️ **Record Management** - Add, edit, and delete health records with real-time UI updates
 - 📝 **Historical Records** - Paginated view of all past health metrics with chronological ordering
 - 🔒 **Data Privacy** - Row-Level Security (RLS) ensures users only access their own data
+- 🧮 **Health Calculations** - BMI, BMR (Mifflin-St Jeor), TDEE, and ideal weight calculations
 - 🎨 **Modern UI** - Clean, responsive interface with Tailwind CSS v4
 - ⚡ **Fast Performance** - Server-side rendering with Next.js 16 App Router
 - 📱 **Mobile-Friendly** - Touch-friendly interface with minimum 44px touch targets
@@ -78,10 +80,13 @@ src/
 │   │   ├── auth/
 │   │   │   ├── [...nextauth]/     # NextAuth API routes
 │   │   │   └── signup/            # User registration
+│   │   ├── user/
+│   │   │   └── profile/           # User profile CRUD API
 │   │   └── weight/                # Weight metrics CRUD API
 │   ├── auth/
 │   │   ├── signin/                # Sign in page
 │   │   └── signup/                # Sign up page
+│   ├── profile/                   # User profile page
 │   ├── records/                   # Historical records page
 │   ├── weight/                    # Weight tracking form
 │   ├── layout.tsx                 # Root layout with providers
@@ -94,13 +99,17 @@ src/
 │   │   └── input.tsx
 │   ├── providers/                 # Context providers
 │   ├── edit-record-modal.tsx
+│   ├── profile-check.tsx          # Profile completion guard
+│   ├── profile-form.tsx           # User profile form
 │   ├── toast.tsx
 │   └── user-menu.tsx
 ├── lib/
 │   ├── auth/                      # NextAuth configuration
 │   └── supabase/                  # Supabase clients
 ├── types/                         # TypeScript type definitions
-└── utils/                         # Utility functions
+└── utils/
+    ├── date.ts                    # Date formatting utilities
+    └── health-calculations.ts     # BMI, BMR, TDEE calculations
 ```
 
 ## Authentication Flow
@@ -109,8 +118,10 @@ src/
 2. Credentials stored securely in Supabase Auth
 3. User signs in at `/auth/signin`
 4. JWT session created with NextAuth
-5. Protected routes accessible after authentication
-6. User data isolated by Row-Level Security
+5. **New users are redirected to `/profile` to complete demographic information**
+6. User enters gender, date of birth, and height
+7. After profile completion, user can access `/weight` and `/records`
+8. User data isolated by Row-Level Security
 
 ## API Endpoints
 
@@ -118,11 +129,36 @@ src/
 - `POST /api/auth/signup` - Create new user account
 - `GET/POST /api/auth/[...nextauth]` - NextAuth.js endpoints
 
+### User Profile
+- `GET /api/user/profile` - Get current user profile
+- `PUT /api/user/profile` - Update user profile (gender, dateOfBirth, height, name)
+
 ### Weight Metrics
 - `GET /api/weight` - List user's weight records (paginated)
 - `POST /api/weight` - Create new weight record
 - `PUT /api/weight` - Update existing record
 - `DELETE /api/weight?id={id}` - Delete record
+
+## Health Calculations
+
+The app uses demographic data (gender, age, height) for accurate health calculations:
+
+### BMI (Body Mass Index)
+- **Formula**: weight (kg) / (height (m))²
+- **Categories**: Underweight (<18.5), Normal (18.5-24.9), Overweight (25-29.9), Obese (≥30)
+
+### BMR (Basal Metabolic Rate)
+- **Method**: Mifflin-St Jeor Equation (more accurate than Harris-Benedict)
+- **Formula**: 
+  - Male: 10 × weight + 6.25 × height - 5 × age + 5
+  - Female: 10 × weight + 6.25 × height - 5 × age - 161
+
+### TDEE (Total Daily Energy Expenditure)
+- BMR × Activity Multiplier
+- Activity levels: Sedentary (1.2), Light (1.375), Moderate (1.55), Active (1.725), Very Active (1.9)
+
+### Ideal Weight Range
+- Calculates healthy weight range based on BMI 18.5-24.9
 
 ## Security
 
@@ -135,7 +171,37 @@ src/
 - ✅ Input validation on all API endpoints
 - ✅ Ownership verification before updates/deletions
 
+## Database Setup
+
+### New Projects
+Run the complete schema in Supabase SQL Editor:
+```sql
+\i supabase-schema.sql
+```
+
+### Existing Projects
+Apply the migration for existing databases:
+```sql
+\i migrations/001_add_user_demographics.sql
+```
+
+### User Table Schema
+```sql
+users (
+  id TEXT PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  name TEXT,
+  image TEXT,
+  gender TEXT CHECK (gender IN ('male', 'female', 'other')),
+  date_of_birth DATE,
+  height NUMERIC(5,2), -- in centimeters
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+)
+```
+
 ## Documentation
 
 - [AGENTS.md](./AGENTS.md) - Development guidelines and code conventions for AI assistants
 - [supabase-schema.sql](./supabase-schema.sql) - Database schema and setup
+- [migrations/001_add_user_demographics.sql](./migrations/001_add_user_demographics.sql) - Database migration script
