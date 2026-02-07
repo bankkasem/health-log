@@ -7,6 +7,9 @@ declare module "next-auth" {
       email: string;
       name?: string;
       image?: string;
+      gender?: "male" | "female" | "other";
+      dateOfBirth?: string;
+      height?: number;
     };
   }
 
@@ -15,6 +18,9 @@ declare module "next-auth" {
     email: string;
     name?: string;
     image?: string;
+    gender?: "male" | "female" | "other";
+    dateOfBirth?: string;
+    height?: number;
   }
 }
 
@@ -24,5 +30,8 @@ declare module "next-auth/jwt" {
     email: string;
     name?: string;
     picture?: string;
+    gender?: "male" | "female" | "other";
+    dateOfBirth?: string;
+    height?: number;
   }
 }
